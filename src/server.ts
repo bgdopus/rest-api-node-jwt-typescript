@@ -6,7 +6,6 @@ import compression from "compression";
 import cors from "cors";
 
 import { UserRoutes } from "./routes/userRoutes";
-import { DbService } from './util/DbService';
 
 class Server {
   public app: express.Application;
@@ -19,7 +18,7 @@ class Server {
   }
 
   public routes(): void {
-    this.app.use("/api/user", new UserRoutes(new DbService()).router);
+    this.app.use("/api/user", new UserRoutes().router);
   }
 
   public config(): void {

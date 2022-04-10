@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { DbService } from "../util/DbService";
 import { UserController } from "../controllers/userController";
 import { authenticationMiddleware } from '../auth/auth';
 
@@ -7,10 +6,8 @@ export class UserRoutes {
 
     router: Router;
     public userController: UserController;
-    public dbService: DbService
 
-    constructor(dbService: DbService) {
-        this.dbService = dbService;
+    constructor() {
         this.router = Router();
         this.userController = new UserController();
         this.routes();

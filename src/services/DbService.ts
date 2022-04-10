@@ -1,66 +1,74 @@
 import { User } from '../models/interfaces';
-import { DbContext } from './DbContext';
-const pgtools = require("pgtools");
+import pgtools from "pgtools";
+import { Pool } from "pg";
 
-export class DbService {
-	private initialConfig = {
+export default class DbService {
+	private static initialConfig = {
 		user: "postgres",
 		host: "localhost",
 		password: "123456",
 		port: 5432
 	};
-	private db;
+	private static pool;
 
-	constructor() {
-		pgtools.createdb(this.initialConfig, "some_db", this.initDb.bind(this));
+	public static createDb() {
+		pgtools.createdb(this.initialConfig, "some_db", DbService.seed.bind(this));
 	}
 
-	public createUser(user: User) {
+	public static createUser(user: User) {
 		const text = `
 			INSERT INTO users (username, password)
 			VALUES ($1, $2)
 			RETURNING id
 		`;
 		const values = [user.username, user.password];
-		return this.db.execute(text, values).then(result => {
-			if (result) {
-				console.log('User created.');
-			}
-		});
+		return this.pool.query(text, values);
 	}
 
-	public findUserByUsername(username: string) {
+	public static findUserByUsername(username: string) {
 		const text = `SELECT * FROM users WHERE username = $1`;
 		const values = [username];
-		return this.db.execute(text, values);
+		return this.pool.query(text, values);
 	}
 	
-	public getAllItems() {
+	public static getAllItems() {
 		const text = `SELECT * FROM items`;
-		return this.db.execute(text, null);
+		return this.pool.query(text, null);
 	}
 
-	public add(item) {
+	public static add(item) {
 		const text = `INSERT INTO items (name, type, description)
 		VALUES ($1, $2, $3)
 		RETURNING *;`;
 		const values = [item.name, item.type, item.description];
-		return this.db.execute(text, values);
+		return this.pool.query(text, values);
 	}
 
-	public deleteById(item) {
+	public static deleteById(item) {
 		const text = `DELETE FROM items WHERE id = $1`;
 		const values = [item];
-		return this.db.execute(text, values);
+		return this.pool.query(text, values);
 	}
 
-	public updateById(item) {
+	public static updateById(item) {
 		const text = `UPDATE items SET name = $2, type = $3, description = $4 WHERE id = $1`;
 		const values = [item.id, item.name, item.type, item.description];
-		return this.db.execute(text, values);
+		return this.pool.query(text, values);
 	}
 
-	private seed() {
+	private static async seed(err, res) {
+		if (err) {
+			console.error(err);
+			process.exit(-1);
+		}
+		console.log(res);
+		this.pool = new Pool({
+			user: "postgres",
+			host: "localhost",
+			database: "some_db",
+			password: "123456",
+			port: 5432
+		});
 		const usersTableQuery = `
 		CREATE TABLE IF NOT EXISTS "users" (
 			"id" SERIAL,
@@ -69,7 +77,7 @@ export class DbService {
 			PRIMARY KEY ("id")
 		);`;
 
-		this.db.execute(usersTableQuery, null).then(result => {
+		this.pool.query(usersTableQuery, null).then(result => {
 			if (result) {
 				console.log('User table created');
 				return result;
@@ -90,21 +98,11 @@ export class DbService {
 		INSERT INTO items (name, type, description)
 		VALUES ('coca-cola', 'cola', 'description description description');`;
 
-		this.db.execute(itemsTableQuery, null).then(result => {
+		this.pool.query(itemsTableQuery, null).then(result => {
 			if (result) {
 				console.log('Items table created');
 				return result;
 			}
 		});
-	}
-
-	private initDb(err, res) {
-		if (err) {
-			console.error(err);
-			process.exit(-1);
-		}
-		console.log(res);
-		this.db = new DbContext();
-		this.seed();
 	}
 }

@@ -1,13 +1,15 @@
 import bcrypt from "bcrypt-nodejs";
 import { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { DbService } from '../util/DbService';
+import DbService from '../services/DbService';
 import { User } from "../models/interfaces";
 import { fork } from "child_process";
 
 export class UserController {
-  private dbService: DbService;
 
+  constructor() {
+    DbService.createDb();
+  }
   public async registerUser(req: Request, res: Response) {
     const hashedPassword = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
 
@@ -17,7 +19,7 @@ export class UserController {
 
     };
     
-    this.dbService.createUser(user);
+    DbService.createUser(user);
 
     const token = jwt.sign({ username: req.body.username, scope : req.body.scope }, process.env["JWT_SECRET"]);
     return res.status(200).send({ token: token });
@@ -29,7 +31,7 @@ export class UserController {
       return res.status(400).send("All input is required");
     }
 
-    const userResult = await this.dbService.findUserByUsername(req.body.username);
+    const userResult = await DbService.findUserByUsername(req.body.username);
     const user = userResult.rows[0];
     bcrypt.compare(password, user.password, function (err, result) {
       if (result) {
@@ -43,7 +45,7 @@ export class UserController {
 
   public async loadItems(req: Request, res: Response){
     try {
-      const itemsResult = await this.dbService.getAllItems();
+      const itemsResult = await DbService.getAllItems();
       const items = itemsResult.rows;
       console.log(items);
       return res.status(200).send({ items: items, message: "Items are loaded." });
@@ -57,7 +59,7 @@ export class UserController {
       if (!req.body) {
         return res.status(400).send("Bad request.");
       }
-      const itemResult = await this.dbService.add(req.body);
+      const itemResult = await DbService.add(req.body);
       const item = itemResult.rows[0];
       console.log(item);
       return res.status(200).send({ data: item });
@@ -69,7 +71,7 @@ export class UserController {
   public async delete(req: Request, res: Response){
     try {
       const { id } = req.params
-      await this.dbService.deleteById(id);
+      await DbService.deleteById(id);
       console.log(`Item id=${id} deleted.`);
       return res.status(200).send({message: "Item deleted."});
     } catch (error) {
@@ -80,7 +82,7 @@ export class UserController {
   public async update(req: Request, res: Response){
     try {
       const newItem = req.body;
-      await this.dbService.updateById(newItem);
+      await DbService.updateById(newItem);
       return res.status(200).send({message: "Item is updated."});
     } catch (error) {
       return res.status(500).send("Server error.");
@@ -94,7 +96,7 @@ export class UserController {
 
       child.on("close", function (code) {
         console.log("child process exited with code " + code);
-        return res.status(200).send("Long Running Operation Done!");
+        return res.status(200).send({message:"Long Running Operation Done!"});
       });
       
     } catch (error) {
