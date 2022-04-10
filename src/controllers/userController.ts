@@ -46,7 +46,7 @@ export class UserController {
       const itemsResult = await this.dbService.getAllItems();
       const items = itemsResult.rows;
       console.log(items);
-      return res.status(200).send({ data: items });
+      return res.status(200).send({ items: items, message: "Items are loaded." });
     } catch (error) {
       return res.status(500).send("Server error.");
     }
@@ -54,8 +54,10 @@ export class UserController {
 
   public async add(req: Request, res: Response){
     try {
-      const newItem = req.body;
-      const itemResult = await this.dbService.add(newItem);
+      if (!req.body) {
+        return res.status(400).send("Bad request.");
+      }
+      const itemResult = await this.dbService.add(req.body);
       const item = itemResult.rows[0];
       console.log(item);
       return res.status(200).send({ data: item });
@@ -66,8 +68,10 @@ export class UserController {
 
   public async delete(req: Request, res: Response){
     try {
-      await this.dbService.deleteById(req.body.id);
-      return res.status(200).send();
+      const { id } = req.params
+      await this.dbService.deleteById(id);
+      console.log(`Item id=${id} deleted.`);
+      return res.status(200).send({message: "Item deleted."});
     } catch (error) {
       return res.status(500).send("Server error.");
     }
@@ -77,7 +81,7 @@ export class UserController {
     try {
       const newItem = req.body;
       await this.dbService.updateById(newItem);
-      return res.status(200).send();
+      return res.status(200).send({message: "Item is updated."});
     } catch (error) {
       return res.status(500).send("Server error.");
     }

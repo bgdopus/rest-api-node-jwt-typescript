@@ -41,10 +41,10 @@ export class DbService {
 	}
 
 	public add(item) {
-		const text = `INSERT INTO items (name, type)
-		VALUES ($1, $2)
+		const text = `INSERT INTO items (name, type, description)
+		VALUES ($1, $2, $3)
 		RETURNING *;`;
-		const values = [item.name, item.type];
+		const values = [item.name, item.type, item.description];
 		return this.db.execute(text, values);
 	}
 
@@ -55,8 +55,8 @@ export class DbService {
 	}
 
 	public updateById(item) {
-		const text = `UPDATE items SET name = $2, type = $3 WHERE id = $1`;
-		const values = [item.id, item.name, item.type];
+		const text = `UPDATE items SET name = $2, type = $3, description = $4 WHERE id = $1`;
+		const values = [item.id, item.name, item.type, item.description];
 		return this.db.execute(text, values);
 	}
 
@@ -64,7 +64,7 @@ export class DbService {
 		const usersTableQuery = `
 		CREATE TABLE IF NOT EXISTS "users" (
 			"id" SERIAL,
-			"username" VARCHAR(15) NOT NULL,
+			"username" VARCHAR(15) UNIQUE,
 			"password" VARCHAR(100) NOT NULL,
 			PRIMARY KEY ("id")
 		);`;
@@ -81,13 +81,14 @@ export class DbService {
 			"id" SERIAL,
 			"name" VARCHAR(15) NOT NULL,
 			"type" VARCHAR(15) NOT NULL,
+			"description" VARCHAR(50) NOT NULL,
 			PRIMARY KEY ("id")
 		);
-		INSERT INTO items (name, type)
-		VALUES ('Milk', 'from cow');
+		INSERT INTO items (name, type, description)
+		VALUES ('Milk', 'from cow', 'Milk from cow description');
 
-		INSERT INTO items (name, type)
-		VALUES ('coca-cola', 'cola');`;
+		INSERT INTO items (name, type, description)
+		VALUES ('coca-cola', 'cola', 'description description description');`;
 
 		this.db.execute(itemsTableQuery, null).then(result => {
 			if (result) {
