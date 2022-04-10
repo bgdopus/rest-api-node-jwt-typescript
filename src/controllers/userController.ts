@@ -33,6 +33,10 @@ export class UserController {
 
     const userResult = await DbService.findUserByUsername(req.body.username);
     const user = userResult.rows[0];
+    if (!user) {
+      return res.status(401).json({ status: "error", code: "unauthorized" });
+    }
+    
     bcrypt.compare(password, user.password, function (err, result) {
       if (result) {
         const token = jwt.sign({ username: req.body.username, scope: req.body.scope }, process.env["JWT_SECRET"]);
