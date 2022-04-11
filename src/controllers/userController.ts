@@ -25,7 +25,7 @@ export class UserController {
     return res.status(200).send({ token: token });
   }
 
-  public async loginUser(req: Request, res: Response, next: NextFunction) {
+  public async loginUser(req: Request, res: Response) {
     const { username, password } = req.body;
     if (!(username && password)) {
       return res.status(400).send("All input is required");
