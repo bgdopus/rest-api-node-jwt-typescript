@@ -6,7 +6,7 @@
     "start": "npm run serve",
     "build": "npm run build-ts",
     "serve": "node dist/server.js",
-    "build-ts": "tsc",
+    "build-ts": "tsc -p .",
     "watch-ts": "tsc -w",
     "tslint": "tslint -c tslint.json -p tsconfig.json"
   },

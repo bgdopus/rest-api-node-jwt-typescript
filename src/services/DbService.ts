@@ -4,15 +4,15 @@ import { Pool } from "pg";
 
 export default class DbService {
 	private static initialConfig = {
-		user: "postgres",
-		host: "localhost",
-		password: "123456",
-		port: 5432
+		user: process.env.DB_USER,
+		host: process.env.DB_HOST,
+		password: process.env.DB_PASSWORD,
+		port: process.env.DB_PORT
 	};
 	private static pool;
 
 	public static createDb() {
-		pgtools.createdb(this.initialConfig, "some_db", DbService.seed.bind(this));
+		pgtools.createdb(this.initialConfig, process.env.DB_NAME, DbService.seed.bind(this));
 	}
 
 	public static createUser(user: User) {
@@ -63,11 +63,11 @@ export default class DbService {
 		}
 		console.log(res);
 		this.pool = new Pool({
-			user: "postgres",
-			host: "localhost",
-			database: "some_db",
-			password: "123456",
-			port: 5432
+			user: process.env.DB_USER,
+			host: process.env.DB_HOST,
+			database: process.env.DB_NAME,
+			password: process.env.DB_PASSWORD,
+			port: process.env.DB_PORT
 		});
 		const usersTableQuery = `
 		CREATE TABLE IF NOT EXISTS "users" (
